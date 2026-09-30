@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>DailyFlow — Productivity Tracker</title>
+<style>
+:root{
+  --bg:#071014; --surface:#0d181d; --surface2:#101e24; --surface3:#13242b;
+  --text:#e8fbff; --muted:#7e9ba3; --line:#1d343b;
+  --primary:#18e0e8; --primary2:#0bbac4; --green:#22e6a6; --danger:#ff6374;
+  --shadow:0 15px 45px rgba(0,0,0,.28); --radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 85% 0%,#12343a 0,transparent 30%),var(--bg);color:var(--text)}
+button,input{font:inherit} button{cursor:pointer;border:0}
+.app{min-height:100vh;display:flex}
+.sidebar{width:250px;background:#061014;border-right:1px solid var(--line);padding:25px 18px;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;z-index:10}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:20px;padding:4px 10px 28px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#24f2f3,#087f8a);display:grid;place-items:center;color:#00191c;font-size:20px;box-shadow:0 0 25px #18e0e844}
+.nav{display:grid;gap:7px}.nav button{color:#719099;background:transparent;text-align:left;padding:12px 13px;border-radius:12px;display:flex;gap:11px;align-items:center}.nav button:hover,.nav button.active{background:#10252b;color:var(--primary)}.nav .icon{width:20px;text-align:center}
+.side-bottom{margin-top:auto;background:#0b1a20;border:1px solid var(--line);padding:15px;border-radius:15px;color:#718d96;font-size:12px;line-height:1.55}
+.main{margin-left:250px;width:calc(100% - 250px);padding:28px;max-width:1600px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;gap:20px}
+.greeting h1{margin:0;font-size:29px;letter-spacing:-.8px}.greeting p{margin:5px 0 0;color:var(--muted)}
+.date-pill{background:var(--surface);border:1px solid var(--line);padding:11px 15px;border-radius:13px;color:#b7d2d8;font-weight:650}
+.grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.85fr);gap:20px}
+.card{background:rgba(13,24,29,.96);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.hero{padding:23px}.hero-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.hero h2,.card h3{margin:0}.hero h2{font-size:20px}.sub{font-size:13px;color:var(--muted);margin-top:5px}
+.progress-wrap{height:12px;background:#16272d;border-radius:99px;overflow:hidden;margin:20px 0 9px}.progress{height:100%;width:0;background:linear-gradient(90deg,#0bbac4,#31f5e7);box-shadow:0 0 18px #18e0e866;border-radius:99px;transition:.35s}.progress-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.task-list{margin-top:18px;display:grid;gap:10px}.task{display:flex;align-items:center;gap:14px;border:1px solid var(--line);padding:14px 15px;border-radius:14px;background:#0b171c;transition:.18s}.task:hover{border-color:#27515a;transform:translateY(-1px)}
+.check{width:25px;height:25px;border:2px solid #38535b;border-radius:8px;background:#09151a;display:grid;place-items:center;color:#031416;flex:none}.task.done{background:#0b211e;border-color:#17483d}.task.done .check{background:var(--green);border-color:var(--green)}.task.done .check:after{content:"✓";font-size:16px;font-weight:800}.task.done .task-name{text-decoration:line-through;color:#5d777e}.task-name{font-weight:650;flex:1}.task-actions{display:flex;gap:4px}.ghost{background:transparent;color:#607b83;padding:6px;border-radius:8px}.ghost:hover{background:#13272d;color:var(--primary)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stat{padding:18px}.stat .num{font-size:28px;font-weight:800;margin-top:5px;color:var(--primary)}.stat .label{font-size:12px;color:var(--muted)}
+.side-card{padding:20px}.side-card+.side-card{margin-top:20px}
+.calendar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.month-title{font-weight:750}.cal-nav{display:flex;gap:5px}.cal-nav button{background:#14272d;color:#a7c2c8;width:31px;height:31px;border-radius:9px}
+.weekdays,.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.weekday{text-align:center;font-size:10px;color:#55727a;padding:5px 0}.day{min-height:43px;border-radius:10px;display:grid;place-items:center;position:relative;font-size:12px;color:#9cb5bb}.day.muted{color:#344d54}.day.selectable{cursor:pointer}.day.selectable:hover{background:#112a30}.day.selected{background:var(--primary);color:#021416;font-weight:800;box-shadow:0 0 18px #18e0e844}.day.today:not(.selected){outline:2px solid #19747a}.dot{position:absolute;bottom:5px;width:4px;height:4px;border-radius:50%;background:var(--green)}.day.selected .dot{background:#032022}
+.month-progress{display:flex;align-items:center;gap:17px}.ring{width:92px;height:92px;border-radius:50%;background:conic-gradient(var(--primary) var(--pct),#182b31 0);display:grid;place-items:center;flex:none;position:relative;box-shadow:0 0 25px #18e0e81c}.ring:before{content:"";width:69px;height:69px;background:#0d181d;border-radius:50%;position:absolute}.ring span{position:relative;font-size:19px;font-weight:800}.month-info strong{font-size:24px}.month-info p{font-size:12px;color:var(--muted);margin:5px 0 0;line-height:1.5}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}.section-title h3{font-size:16px}
+.btn{padding:10px 14px;border-radius:11px;font-weight:700}.primary{background:var(--primary);color:#021416;box-shadow:0 0 18px #18e0e833}.primary:hover{background:#4cf6f3}.secondary{background:#172a30;color:#9db8be}.danger{color:var(--danger)}
+.chart-card{margin-top:20px;padding:21px}.chart-wrap{height:280px;position:relative}.chart-wrap canvas{width:100%;height:100%;display:block}
+.chart-legend{font-size:12px;color:var(--muted);margin-top:8px}.chart-title{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.chart-title h3{font-size:17px}.chart-title span{font-size:11px;color:#56747c}
+.modal-bg{position:fixed;inset:0;background:rgba(0,8,11,.72);display:none;align-items:center;justify-content:center;z-index:30;padding:20px}.modal-bg.open{display:flex}.modal{background:#0d181d;border:1px solid #25424a;width:min(480px,100%);border-radius:22px;padding:24px;box-shadow:0 25px 70px rgba(0,0,0,.5)}.modal h2{margin:0 0 5px}.modal p{color:var(--muted);font-size:13px}.field{margin:17px 0}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}.field input{width:100%;border:1px solid #29434a;background:#09151a;color:#e8fbff;border-radius:11px;padding:12px;outline:none}.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px #18e0e81c}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.empty{text-align:center;color:var(--muted);padding:30px 10px;border:1px dashed #29434a;border-radius:14px}.toast{position:fixed;right:25px;bottom:25px;background:#dffeff;color:#062024;padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);pointer-events:none;transition:.25s;z-index:50;font-size:13px;font-weight:700}.toast.show{opacity:1;transform:translateY(0)}
+.mobile-menu{display:none}
+@media(max-width:1000px){.sidebar{width:210px}.main{margin-left:210px;width:calc(100% - 210px)}.grid{grid-template-columns:1fr}.side-column{display:grid;grid-template-columns:1fr 1fr;gap:20px}.side-card+.side-card{margin-top:0}}
+@media(max-width:720px){.sidebar{display:none}.main{margin-left:0;width:100%;padding:17px}.topbar{align-items:flex-start}.stats{grid-template-columns:1fr 1fr 1fr}.side-column{grid-template-columns:1fr}.hero{padding:17px}.topbar h1{font-size:23px}.date-pill{font-size:11px}.task{padding:12px}.chart-wrap{height:240px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">✓</div> DailyFlow</div>
+  <div class="nav">
+    <button class="active" onclick="showDashboard()"><span class="icon">▦</span> Dashboard</button>
+    <button onclick="openSetup()"><span class="icon">⚙</span> My Routine</button>
+    <button onclick="goToday()"><span class="icon">◷</span> Today</button>
+  </div>
+  <div class="side-bottom">Your routine repeats every day. Progress is stored locally in this browser, so you can close the page and come back later.</div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="greeting"><h1 id="greeting">Good evening!</h1><p id="welcome">Let's make today count.</p></div>
+    <div class="date-pill" id="datePill"></div>
+  </div>
+
+  <div class="grid">
+    <section>
+      <div class="card hero">
+        <div class="hero-head">
+          <div><h2 id="dayTitle">October 1, 2026</h2><div class="sub" id="daySub">Your daily routine</div></div>
+          <button class="btn primary" onclick="openAddTask()">+ Add task</button>
+        </div>
+        <div class="progress-wrap"><div class="progress" id="dayProgress"></div></div>
+        <div class="progress-row"><span id="dayProgressText">0 of 0 completed</span><strong id="dayPercent">0%</strong></div>
+        <div class="task-list" id="taskList"></div>
+      </div>
+
+      <div class="stats" style="margin-top:20px">
+        <div class="card stat"><div class="label">Today's completed</div><div class="num" id="statDone">0</div></div>
+        <div class="card stat"><div class="label">Current streak</div><div class="num" id="statStreak">0 🔥</div></div>
+        <div class="card stat"><div class="label">Monthly completion</div><div class="num" id="statMonth">0%</div></div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-title">
+          <div><h3>Daily productivity</h3><div class="sub">Tasks completed each day</div></div>
+          <span id="chartMonthLabel">October 2026</span>
+        </div>
+        <div class="chart-wrap"><canvas id="productivityChart"></canvas></div>
+        <div class="chart-legend">Example: Oct 1 → 5 tasks completed, Oct 2 → 2 tasks completed.</div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-title">
+          <div><h3>Monthly completion rate</h3><div class="sub">Your percentage of completed daily tasks</div></div>
+        </div>
+        <div class="chart-wrap" style="height:220px"><canvas id="rateChart"></canvas></div>
+      </div>
+    </section>
+
+    <aside class="side-column">
+      <div class="card side-card">
+        <div class="calendar-head"><button class="ghost" onclick="prevMonth()">‹</button><div class="month-title" id="calendarTitle"></div><div class="cal-nav"><button onclick="nextMonth()">›</button></div></div>
+        <div class="weekdays"><div class="weekday">SUN</div><div class="weekday">MON</div><div class="weekday">TUE</div><div class="weekday">WED</div><div class="weekday">THU</div><div class="weekday">FRI</div><div class="weekday">SAT</div></div>
+        <div class="calendar" id="calendar"></div>
+      </div>
+
+      <div class="card side-card">
+        <div class="section-title"><h3>Month progress</h3><span id="monthDays" style="font-size:11px;color:var(--muted)"></span></div>
+        <div class="month-progress">
+          <div class="ring" id="ring"><span id="ringText">0%</span></div>
+          <div class="month-info"><strong id="monthScore">0 / 0</strong><p>tasks completed<br>across this month</p></div>
+        </div>
+      </div>
+      <div class="card side-card">
+        <div class="section-title"><h3>Routine</h3><button class="ghost" onclick="openSetup()">Edit</button></div>
+        <div id="routinePreview" style="font-size:13px;color:var(--muted);line-height:1.7"></div>
+      </div>
+    </aside>
+  </div>
+</main>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal" id="modalContent"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const START = new Date(2026,9,1);
+const now = new Date();
+let selectedDate = new Date(START);
+let calendarMonth = new Date(START);
+let editingIndex = null;
+
+const defaultTasks = [
+  "Wake up early",
+  "Exercise / Workout",
+  "Read for 30 minutes",
+  "Deep work / Study",
+  "Drink enough water",
+  "Plan tomorrow"
+];
+
+let data = JSON.parse(localStorage.getItem("dailyFlowData") || "null") || {
+  name:"",
+  tasks:[...defaultTasks],
+  completions:{}
+};
+
+function save(){ localStorage.setItem("dailyFlowData",JSON.stringify(data)); }
+function key(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function parseKey(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
+function dateLabel(d, opts={year:"numeric",month:"long",day:"numeric"}){ return d.toLocaleDateString(undefined,opts); }
+function isSame(a,b){return key(a)===key(b)}
+function completedFor(d){return new Set(data.completions[key(d)]||[])}
+function setCompleted(d,set){data.completions[key(d)]=[...set];save()}
+function pct(done,total){return total?Math.round(done/total*100):0}
+
+
+function setupCanvas(canvas){
+  const rect=canvas.getBoundingClientRect(), ratio=window.devicePixelRatio||1;
+  canvas.width=Math.max(1,Math.floor(rect.width*ratio)); canvas.height=Math.max(1,Math.floor(rect.height*ratio));
+  const ctx=canvas.getContext("2d"); ctx.setTransform(ratio,0,0,ratio,0,0); return {ctx,w:rect.width,h:rect.height};
+}
+function drawLineChart(canvas, values, maxValue, labels, mode="tasks"){
+  if(!canvas)return; const {ctx,w,h}=setupCanvas(canvas), pad={l:38,r:16,t:20,b:35};
+  ctx.clearRect(0,0,w,h); ctx.font="11px Inter, system-ui, sans-serif";
+  const innerW=w-pad.l-pad.r, innerH=h-pad.t-pad.b;
+  const max=Math.max(maxValue,1), points=values.map((v,i)=>({x:pad.l+(i/(Math.max(values.length-1,1)))*innerW,y:pad.t+innerH-(v/max)*innerH}));
+  ctx.strokeStyle="#1d343b";ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){let y=pad.t+innerH*i/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle="#55727a";ctx.fillText(String(Math.round(max*(4-i)/4)),5,y+4)}
+  if(points.length>1){
+    const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+innerH);grad.addColorStop(0,"rgba(24,224,232,.30)");grad.addColorStop(1,"rgba(24,224,232,0)");
+    ctx.beginPath();ctx.moveTo(points[0].x,pad.t+innerH);points.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(points.at(-1).x,pad.t+innerH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+    ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle="#18e0e8";ctx.lineWidth=2.5;ctx.shadowColor="#18e0e855";ctx.shadowBlur=8;ctx.stroke();ctx.shadowBlur=0;
+    points.forEach((p,i)=>{ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fillStyle="#18e0e8";ctx.fill();ctx.strokeStyle="#071014";ctx.lineWidth=2;ctx.stroke();
+      if(values[i]>0){ctx.fillStyle="#bceff2";ctx.textAlign="center";ctx.fillText(String(values[i])+(mode==="rate"?"%":""),p.x,p.y-10)}
+    });
+  }
+  ctx.fillStyle="#55727a";ctx.textAlign="center";
+  labels.forEach((lab,i)=>{if(i%Math.ceil(labels.length/10)===0||i===labels.length-1){const x=pad.l+(i/(Math.max(labels.length-1,1)))*innerW;ctx.fillText(lab,x,h-10)}});ctx.textAlign="left";
+}
+function renderCharts(){
+  const y=calendarMonth.getFullYear(),m=calendarMonth.getMonth(),days=new Date(y,m+1,0).getDate();
+  const labels=Array.from({length:days},(_,i)=>String(i+1));
+  const vals=Array.from({length:days},(_,i)=>completedFor(new Date(y,m,i+1)).size);
+  drawLineChart(document.getElementById("productivityChart"),vals,Math.max(data.tasks.length,5),labels,"tasks");
+  const rates=vals.map(v=>pct(v,data.tasks.length));
+  drawLineChart(document.getElementById("rateChart"),rates,100,labels,"rate");
+  document.getElementById("chartMonthLabel").textContent=calendarMonth.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+}
+function init(){
+  const today = new Date();
+  // The app's first working date is October 1, 2026; before that, keep the start date selected.
+  selectedDate = today >= START ? today : new Date(START);
+  calendarMonth = new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+  openNameIfNeeded();
+  render();
+}
+function openNameIfNeeded(){
+  if(!data.name){
+    showModal(`<h2>Welcome to DailyFlow 👋</h2><p>Let's set up your personal daily productivity tracker.</p>
+      <div class="field"><label>Your name</label><input id="nameInput" placeholder="e.g. Danish" autofocus></div>
+      <div class="modal-actions"><button class="btn primary" onclick="saveName()">Start tracking</button></div>`);
+  }
+}
+function saveName(){
+  const n=document.getElementById("nameInput").value.trim();
+  if(!n){document.getElementById("nameInput").focus();return}
+  data.name=n;save();closeModal();render();toast("Welcome, "+n+"! 🎯");
+}
+function render(){
+  const h=new Date().getHours();
+  document.getElementById("greeting").textContent=(h<12?"Good morning":h<17?"Good afternoon":"Good evening")+"!";
+  document.getElementById("welcome").textContent=data.name?`Ready to make today count, ${data.name}.`:"Let's make today count.";
+  document.getElementById("datePill").textContent=dateLabel(selectedDate,{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+  const done=completedFor(selectedDate), total=data.tasks.length, p=pct(done.size,total);
+  document.getElementById("dayTitle").textContent=dateLabel(selectedDate);
+  document.getElementById("daySub").textContent=isSame(selectedDate,new Date())?"Today • Your daily routine":"Daily routine • "+dateLabel(selectedDate,{weekday:"long"});
+  document.getElementById("dayProgress").style.width=p+"%";
+  document.getElementById("dayProgressText").textContent=`${done.size} of ${total} completed`;
+  document.getElementById("dayPercent").textContent=p+"%";
+  document.getElementById("statDone").textContent=done.size;
+  document.getElementById("statStreak").textContent=currentStreak()+" 🔥";
+  const mp=monthStats(calendarMonth.getFullYear(),calendarMonth.getMonth());
+  document.getElementById("statMonth").textContent=pct(mp.done,mp.total)+"%";
+  renderTasks(); renderCalendar(); renderMonth(); renderRoutine(); renderCharts();
+}
+function renderTasks(){
+  const el=document.getElementById("taskList"), done=completedFor(selectedDate);
+  if(!data.tasks.length){el.innerHTML='<div class="empty">No tasks yet. Add your first daily task above.</div>';return}
+  el.innerHTML=data.tasks.map((t,i)=>`<div class="task ${done.has(i)?"done":""}">
+    <button class="check" aria-label="Toggle task" onclick="toggleTask(${i})"></button>
+    <div class="task-name">${escapeHtml(t)}</div>
+    <div class="task-actions"><button class="ghost" onclick="editTask(${i})" title="Edit">✎</button><button class="ghost danger" onclick="deleteTask(${i})" title="Delete">×</button></div>
+  </div>`).join("");
+}
+function toggleTask(i){
+  const s=completedFor(selectedDate);s.has(i)?s.delete(i):s.add(i);setCompleted(selectedDate,s);render();toast(s.has(i)?"Task completed ✓":"Task marked incomplete");
+}
+function openAddTask(){
+  editingIndex=null;
+  showModal(`<h2>Add daily task</h2><p>This task will repeat every day from October 1, 2026 onward.</p>
+    <div class="field"><label>Task name</label><input id="taskInput" placeholder="e.g. Practice Java for 45 minutes" autofocus></div>
+    <div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveTask()">Add task</button></div>`);
+}
+function editTask(i){
+  editingIndex=i;
+  showModal(`<h2>Edit task</h2><p>Changes apply to your daily routine.</p>
+    <div class="field"><label>Task name</label><input id="taskInput" value="${escapeAttr(data.tasks[i])}" autofocus></div>
+    <div class="modal-actions"><button class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveTask()">Save changes</button></div>`);
+}
+function saveTask(){
+  const v=document.getElementById("taskInput").value.trim(); if(!v)return;
+  if(editingIndex===null)data.tasks.push(v);else data.tasks[editingIndex]=v;
+  save();closeModal();render();toast(editingIndex===null?"Task added":"Task updated");
+}
+function deleteTask(i){
+  if(!confirm(`Delete "${data.tasks[i]}" from your daily routine?`))return;
+  data.tasks.splice(i,1);
+  // Re-index stored completion arrays.
+  Object.keys(data.completions).forEach(k=>{
+    data.completions[k]=(data.completions[k]||[]).filter(x=>x!==i).map(x=>x>i?x-1:x);
+  });
+  save();render();toast("Task removed");
+}
+function renderCalendar(){
+  const y=calendarMonth.getFullYear(),m=calendarMonth.getMonth();
+  document.getElementById("calendarTitle").textContent=calendarMonth.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+  const first=new Date(y,m,1), last=new Date(y,m+1,0), el=document.getElementById("calendar");
+  let cells=[];
+  for(let i=0;i<first.getDay();i++) cells.push(`<div class="day muted"></div>`);
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(y,m,d), c=completedFor(dt), complete=data.tasks.length>0&&c.size===data.tasks.length;
+    cells.push(`<div class="day selectable ${isSame(dt,selectedDate)?"selected":""} ${isSame(dt,new Date())?"today":""}" onclick="selectDate(${y},${m},${d})">
+      ${d}${c.size?'<span class="dot" title="'+c.size+' completed"></span>':''}</div>`);
+  }
+  el.innerHTML=cells.join("");
+}
+function selectDate(y,m,d){selectedDate=new Date(y,m,d);calendarMonth=new Date(y,m,1);render()}
+function prevMonth(){calendarMonth=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()-1,1);renderCalendar();renderMonth();renderCharts()}
+function nextMonth(){calendarMonth=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+1,1);renderCalendar();renderMonth();renderCharts()}
+function goToday(){
+  selectedDate=new Date(); if(selectedDate<START)selectedDate=new Date(START);
+  calendarMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);render();
+}
+function monthStats(y,m){
+  const days=new Date(y,m+1,0).getDate();let done=0,total=days*data.tasks.length;
+  for(let d=1;d<=days;d++)done+=completedFor(new Date(y,m,d)).size;
+  return {done,total,days};
+}
+function renderMonth(){
+  const s=monthStats(calendarMonth.getFullYear(),calendarMonth.getMonth()),p=pct(s.done,s.total);
+  document.getElementById("monthDays").textContent=s.days+" days";
+  document.getElementById("ring").style.setProperty("--pct",p+"%");
+  document.getElementById("ringText").textContent=p+"%";
+  document.getElementById("monthScore").textContent=`${s.done} / ${s.total}`;
+}
+function currentStreak(){
+  let d=new Date(); if(d<START)return 0; d.setHours(0,0,0,0);
+  let streak=0;
+  while(d>=START){
+    const c=completedFor(d);
+    if(!data.tasks.length || c.size===0)break;
+    if(c.size<data.tasks.length)break;
+    streak++; d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+function renderRoutine(){
+  const e=document.getElementById("routinePreview");
+  e.innerHTML=data.tasks.length?data.tasks.map((x,i)=>`${i+1}. ${escapeHtml(x)}`).join("<br>"):"No tasks configured.";
+}
+function openSetup(){
+  showModal(`<h2>My routine</h2><p>Your daily tasks are repeated automatically on every date. You can manage them here.</p>
+    <div style="display:grid;gap:8px;margin-top:15px">${data.tasks.map((t,i)=>`<div style="display:flex;align-items:center;gap:9px;border:1px solid #e7ebf2;padding:10px 12px;border-radius:11px"><span style="flex:1;font-size:13px">${escapeHtml(t)}</span><button class="ghost" onclick="editFromSetup(${i})">✎</button><button class="ghost danger" onclick="deleteFromSetup(${i})">×</button></div>`).join("")}</div>
+    <div class="modal-actions"><button class="btn primary" onclick="closeModal();openAddTask()">+ Add task</button></div>`);
+}
+function editFromSetup(i){closeModal();editTask(i)}
+function deleteFromSetup(i){closeModal();deleteTask(i);setTimeout(openSetup,150)}
+function showDashboard(){render()}
+function showModal(content){document.getElementById("modalContent").innerHTML=content;document.getElementById("modal").classList.add("open")}
+function closeModal(){document.getElementById("modal").classList.remove("open")}
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+function toast(msg){const e=document.getElementById("toast");e.textContent=msg;e.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>e.classList.remove("show"),1800)}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+init();
+</script>
+</body>
+</html><script>window.addEventListener("resize",()=>{clearTimeout(window.__chartResize);window.__chartResize=setTimeout(renderCharts,120)});</script>
